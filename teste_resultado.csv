@@ -1,0 +1,2 @@
+Teste,Kernel,Elementos,Tempo_Medio_ns,Desvio_Padrao_ns,Tempo_por_Op_ns,Vazao_GOPS,Validacao
+TESTE,Many-threads,1000000,41152,0,0.041152,24300155521.00,OK
