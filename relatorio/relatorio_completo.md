@@ -6,9 +6,17 @@
 **Semestre:** 2º/2025  
 **Data:** Outubro de 2025  
 
-**Autor(es):** [COLOCAR SEU NOME AQUI]
+**Autor(es):** [COLOCAR SEU NOM---
+
+## 8. Referências
+
+1. Harris, M. "Optimizing Parallel Reduction in CUDA", NVIDIA Developer Blog
+2. NVIDIA CUDA C Programming Guide
+3. Thrust Documentation: https://docs.nvidia.com/cuda/thrust/
 
 ---
+
+## 9. Anexos-
 
 ## 1. Objetivo
 
@@ -205,7 +213,51 @@ Para aplicações práticas de redução em GPU:
 
 ---
 
-## 7. Referências
+## 7. Decisões de Implementação e Limitações
+
+### 7.1. Interface da Linha de Comando
+
+A especificação original sugeria:
+```
+./cudaReduceMax <nTotalElements> nR
+```
+
+A implementação adotada usa:
+```
+./cudaReduceMax <nTotalElements>          # Para kernel many-threads
+./cudaReduceMax <nTotalElements> <nBlocks> # Para kernel persistente
+```
+
+**Justificativa:** Esta abordagem permite:
+- Executar e medir cada kernel independentemente
+- Evitar interferência entre medições
+- Maior controle sobre os parâmetros de cada kernel
+- O número de repetições (nR=30) está fixo no código como constante `NTIMES`
+
+### 7.2. Medição de Largura de Banda (copyKernel)
+
+O enunciado sugeria incluir medições de um `copyKernel` como baseline para largura de banda. Esta implementação focou exclusivamente nos kernels de redução e na comparação com Thrust.
+
+**Razão:** O objetivo principal do trabalho era comparar estratégias de redução (many-threads vs persistente vs Thrust). A vazão medida já fornece informação suficiente sobre o desempenho relativo dos algoritmos.
+
+**Trabalho Futuro:** Uma extensão natural seria:
+- Implementar `copyKernel` para medir largura de banda teórica
+- Calcular eficiência dos kernels de redução como percentual da largura de banda
+- Analisar limitações por banda vs. limitações computacionais
+
+### 7.3. Número de Blocos para Kernel Persistente
+
+Foi utilizado **nb = 32 blocos** para o kernel persistente nos experimentos.
+
+**Justificativa:** 
+- GTX 750 Ti possui 5 SMs (Streaming Multiprocessors)
+- 32 blocos = 6-7 blocos por SM, permitindo boa ocupação
+- Valor alinhado com recomendações da NVIDIA para kernels persistentes
+- Balanceamento adequado entre paralelismo e contenção em operações atômicas
+
+---
+
+## 8. Referências
 
 1. Harris, M. "Optimizing Parallel Reduction in CUDA", NVIDIA Developer Blog
 2. NVIDIA CUDA C Programming Guide
