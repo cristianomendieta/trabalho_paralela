@@ -14,12 +14,12 @@ fi
 # Compilação específica por máquina
 if [ "$(hostname)" = "orval" ]; then
     echo "Compilacao especial na maquina orval (GTX 750ti)"
-    echo "nvcc -arch sm_50 --allow-unsupported-compiler -ccbin /usr/bin/gcc-12 cudaReduceMax.cu -o cudaReduceMax"
-    nvcc -arch sm_50 --allow-unsupported-compiler -ccbin /usr/bin/gcc-12 cudaReduceMax.cu -o cudaReduceMax
+    echo "nvcc -arch sm_50 --allow-unsupported-compiler -ccbin /usr/bin/gcc-12 -lstdc++ cudaReduceMax.cu -o cudaReduceMax"
+    nvcc -arch sm_50 --allow-unsupported-compiler -ccbin /usr/bin/gcc-12 -lstdc++ cudaReduceMax.cu -o cudaReduceMax
 else
     echo "Compilando para maquina generica ($(hostname))"
-    echo "nvcc -O3 cudaReduceMax.cu -o cudaReduceMax"
-    nvcc -O3 cudaReduceMax.cu -o cudaReduceMax
+    echo "nvcc -O3 -lstdc++ cudaReduceMax.cu -o cudaReduceMax"
+    nvcc -O3 -lstdc++ cudaReduceMax.cu -o cudaReduceMax
 fi
 
 if [ $? -eq 0 ]; then

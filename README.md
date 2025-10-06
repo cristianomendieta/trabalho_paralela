@@ -14,9 +14,12 @@ Implementação de kernels de redução paralela para encontrar o valor máximo 
 ## Arquivos do Projeto
 
 ### Arquivos Principais
-- `cudaReduceMax.cu` - Código principal com implementação dos kernels
+- `cudaReduceMax.cu` - Código principal com implementação dos kernels (versão completa com Thrust)
+- `cudaReduceMax_simple.cu` - Versão simplificada sem Thrust (recomendada para orval)
 - `Makefile` - Script de compilação com suporte para diferentes máquinas
-- `compile.sh` - Script alternativo de compilação (compatível com orval)
+- `compile.sh` - Script de compilação padrão
+- `compile_simple.sh` - Script de compilação para versão simplificada (sem Thrust)
+- `compile_alt.sh` - Script de compilação com múltiplas tentativas
 - `README.md` - Esta documentação
 
 ### Arquivos Auxiliares (adaptados do vectorAdd)
@@ -34,26 +37,51 @@ Implementação de kernels de redução paralela para encontrar o valor máximo 
 
 ## Compilação
 
-### Usando Makefile
-```bash
-make
-```
+### ⚠️ Problemas de Linkagem com Thrust
 
-### Usando script de compilação
+Se você encontrar erros de linkagem relacionados ao Thrust (referências não definidas para std::), use a **versão simplificada**:
+
+### Versão Simplificada (Recomendada para orval)
 ```bash
+./compile_simple.sh
+```
+Esta versão:
+- ✅ Compila sem problemas na orval
+- ✅ Implementa ambos os kernels solicitados
+- ✅ Faz validação com CPU
+- ❌ Não inclui comparação com Thrust (para evitar problemas de linkagem)
+
+### Versão Completa (com Thrust)
+```bash
+# Makefile automático
+make
+
+# Script alternativo
 ./compile.sh
+
+# Script com múltiplas tentativas
+./compile_alt.sh
 ```
 
 ### Compilação manual
 
-**Para máquina orval (GTX 750ti):**
+**Para máquina orval (GTX 750ti) - Versão Simplificada:**
 ```bash
-nvcc -arch sm_50 --allow-unsupported-compiler -ccbin /usr/bin/gcc-12 cudaReduceMax.cu -o cudaReduceMax
+nvcc -arch sm_50 --allow-unsupported-compiler -ccbin /usr/bin/gcc-12 cudaReduceMax_simple.cu -o cudaReduceMax
+```
+
+**Para máquina orval (GTX 750ti) - Versão Completa:**
+```bash
+nvcc -arch sm_50 --allow-unsupported-compiler -ccbin /usr/bin/gcc-12 -lstdc++ cudaReduceMax.cu -o cudaReduceMax
 ```
 
 **Para máquinas genéricas:**
 ```bash
-nvcc -O3 cudaReduceMax.cu -o cudaReduceMax
+# Versão simplificada
+nvcc -O3 cudaReduceMax_simple.cu -o cudaReduceMax
+
+# Versão completa
+nvcc -O3 -lstdc++ cudaReduceMax.cu -o cudaReduceMax
 ```
 
 ## Execução

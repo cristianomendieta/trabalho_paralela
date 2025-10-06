@@ -11,12 +11,12 @@ all: $(TARGET)
 $(TARGET): $(SOURCE)
 	@if [ "$$(hostname)" = "orval" ]; then \
 		echo "Compilacao especial na maquina orval (GTX 750ti)"; \
-		echo "nvcc -arch sm_50 --allow-unsupported-compiler -ccbin /usr/bin/gcc-12 $(SOURCE) -o $(TARGET)"; \
-		nvcc -arch sm_50 --allow-unsupported-compiler -ccbin /usr/bin/gcc-12 $(SOURCE) -o $(TARGET); \
+		echo "nvcc -arch sm_50 --allow-unsupported-compiler -ccbin /usr/bin/gcc-12 -lstdc++ $(SOURCE) -o $(TARGET)"; \
+		nvcc -arch sm_50 --allow-unsupported-compiler -ccbin /usr/bin/gcc-12 -lstdc++ $(SOURCE) -o $(TARGET); \
 	else \
 		echo "Compilando para maquina generica ($$(hostname))"; \
-		echo "nvcc -O3 $(SOURCE) -o $(TARGET)"; \
-		nvcc -O3 $(SOURCE) -o $(TARGET); \
+		echo "nvcc -O3 -lstdc++ $(SOURCE) -o $(TARGET)"; \
+		nvcc -O3 -lstdc++ $(SOURCE) -o $(TARGET); \
 	fi
 
 # Limpar arquivos compilados

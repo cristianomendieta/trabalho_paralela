@@ -8,6 +8,8 @@
  * Implementação de kernels de redução paralela para encontrar o valor máximo
  * de um vetor de números float usando CUDA.
  * 
+ * VERSÃO SIMPLIFICADA - SEM THRUST (para evitar problemas de linkagem)
+ * 
  * Autor: [Seu Nome]
  * Data: Outubro 2025
  */
@@ -15,9 +17,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cuda_runtime.h>
-#include <thrust/reduce.h>
-#include <thrust/device_vector.h>
-#include <thrust/extrema.h>
 #include <math.h>
 #include <time.h>
 #include <assert.h>
@@ -30,7 +29,7 @@
 #define MAX_BLOCKS 65535
 
 // Chronometer global
-chronometer_t chrono_kernel1, chrono_kernel2, chrono_thrust;
+chronometer_t chrono_kernel1, chrono_kernel2;
 int NTIMES = 30; // Número padrão de repetições
 
 // Função atomicMax para float (usando int como base)
@@ -240,7 +239,7 @@ int main(int argc, char* argv[]) {
     }
     printf("Máximo calculado na CPU: %f\n", max_cpu);
     
-    float result_kernel1 = 0.0f, result_kernel2 = 0.0f, result_thrust = 0.0f;
+    float result_kernel1 = 0.0f, result_kernel2 = 0.0f;
     
     printf("\n=== TESTES DOS KERNELS ===\n");
     
@@ -292,40 +291,20 @@ int main(int argc, char* argv[]) {
         checkCudaErrors(cudaMemcpy(&result_kernel2, result_d, sizeof(float), cudaMemcpyDeviceToHost));
     }
     
-    // Teste Thrust
-    printf("Testando Thrust...\n");
-    thrust::device_vector<float> d_vec(Input_h, Input_h + nTotalElements);
-    
-    chrono_reset(&chrono_thrust);
-    
-    // Warm up
-    result_thrust = *thrust::max_element(d_vec.begin(), d_vec.end());
-    cudaDeviceSynchronize();
-    
-    chrono_start(&chrono_thrust);
-    for (int i = 0; i < NTIMES; i++) {
-        result_thrust = *thrust::max_element(d_vec.begin(), d_vec.end());
-    }
-    cudaDeviceSynchronize();
-    chrono_stop(&chrono_thrust);
-    
     // Validar resultados
     printf("\n=== RESULTADOS ===\n");
     printf("CPU:               %f\n", max_cpu);
     if (useManyThreadsKernel) printf("Kernel 1:          %f\n", result_kernel1);
     if (usePersistentKernel) printf("Kernel 2:          %f\n", result_kernel2);
-    printf("Thrust:            %f\n", result_thrust);
     
     // Verificar se os resultados estão corretos
     float tolerance = 1e-3f;
     bool correct1 = !useManyThreadsKernel || fabsf(result_kernel1 - max_cpu) < tolerance;
     bool correct2 = !usePersistentKernel || fabsf(result_kernel2 - max_cpu) < tolerance;
-    bool correct_thrust = fabsf(result_thrust - max_cpu) < tolerance;
     
     printf("\nValidação:\n");
     if (useManyThreadsKernel) printf("Kernel 1: %s\n", correct1 ? "CORRETO" : "INCORRETO");
     if (usePersistentKernel) printf("Kernel 2: %s\n", correct2 ? "CORRETO" : "INCORRETO");
-    printf("Thrust:   %s\n", correct_thrust ? "CORRETO" : "INCORRETO");
     
     // Reportar desempenho
     printf("\n=== DESEMPENHO ===\n");
@@ -343,19 +322,10 @@ int main(int argc, char* argv[]) {
                ((double)nTotalElements*NTIMES)/((double)chrono_gettotal(&chrono_kernel2)));
     }
     
-    chrono_report_TimeInLoop(&chrono_thrust, "Thrust", NTIMES);
-    printf("reduceMax Thrust Throughput: %lf GFLOPS\n", 
-           ((double)nTotalElements*NTIMES)/((double)chrono_gettotal(&chrono_thrust)));
-    
-    // Calcular acelerações em relação ao Thrust
-    if (useManyThreadsKernel) {
-        double speedup1 = (double)chrono_gettotal(&chrono_thrust) / (double)chrono_gettotal(&chrono_kernel1);
-        printf("Aceleração Kernel1 vs Thrust: %.2fx\n", speedup1);
-    }
-    
-    if (usePersistentKernel) {
-        double speedup2 = (double)chrono_gettotal(&chrono_thrust) / (double)chrono_gettotal(&chrono_kernel2);
-        printf("Aceleração Kernel2 vs Thrust: %.2fx\n", speedup2);
+    // Calcular acelerações entre kernels se ambos foram executados
+    if (useManyThreadsKernel && usePersistentKernel) {
+        double speedup = (double)chrono_gettotal(&chrono_kernel1) / (double)chrono_gettotal(&chrono_kernel2);
+        printf("Aceleração Kernel2 vs Kernel1: %.2fx\n", speedup);
     }
     
     printf("Test PASSED\n");
