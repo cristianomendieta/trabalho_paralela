@@ -1,0 +1,41 @@
+Number of elements requested in command line: 16000000
+Using ManyThreads kernel
+=== CUDA Reduce Max - Kernels Persistentes ===
+Elementos: 16000000
+Repetições: 30
+
+
+GPU Device 0 name is "NVIDIA GeForce GTX 750 Ti"
+Gerando dados de entrada...
+Copy input data from the host memory to the CUDA device
+Máximo calculado na CPU: 216890998784.000000
+
+=== TESTES DOS KERNELS ===
+Testando Kernel 1 (Many-threads)...
+CUDA kernel launch with 15625 blocks of 1024 threads
+Testando Thrust...
+
+=== RESULTADOS ===
+CPU:               216890998784.000000
+Kernel 1:          216890998784.000000
+Thrust:            216890998784.000000
+
+Validação:
+Kernel 1: CORRETO
+Thrust:   CORRETO
+
+=== DESEMPENHO ===
+
+GPU: NVIDIA GeForce GTX 750 Ti reduceMax kernel
+
+Kernel 1 (Many-threads) deltaT(ns): 262511981 ns for 30 ops 
+        ==> each op takes 8750399 ns
+reduceMax Kernel1 Throughput: 1.828488 GFLOPS
+
+Thrust deltaT(ns): 30292237 ns for 30 ops 
+        ==> each op takes 1009741 ns
+reduceMax Thrust Throughput: 15.845644 GFLOPS
+Aceleração Kernel1 vs Thrust: 0.12x
+Test PASSED
+
+Done

@@ -1,0 +1,40 @@
+Number of elements requested in command line: 1000000
+Using persistent kernel with 32 blocks
+=== CUDA Reduce Max - Kernels Persistentes ===
+Elementos: 1000000
+Repetições: 30
+
+
+GPU Device 0 name is "NVIDIA GeForce GTX 750 Ti"
+Gerando dados de entrada...
+Copy input data from the host memory to the CUDA device
+Máximo calculado na CPU: 216869945344.000000
+
+=== TESTES DOS KERNELS ===
+Testando Kernel 2 (Persistente) com 32 blocos...
+Testando Thrust...
+
+=== RESULTADOS ===
+CPU:               216869945344.000000
+Kernel 2:          216869945344.000000
+Thrust:            216869945344.000000
+
+Validação:
+Kernel 2: CORRETO
+Thrust:   CORRETO
+
+=== DESEMPENHO ===
+
+GPU: NVIDIA GeForce GTX 750 Ti reduceMax kernel
+
+Kernel 2 (Persistente) deltaT(ns): 3447789 ns for 30 ops 
+        ==> each op takes 114926 ns
+reduceMax Kernel2 Throughput: 8.701229 GFLOPS
+
+Thrust deltaT(ns): 5644252 ns for 30 ops 
+        ==> each op takes 188141 ns
+reduceMax Thrust Throughput: 5.315142 GFLOPS
+Aceleração Kernel2 vs Thrust: 1.64x
+Test PASSED
+
+Done
