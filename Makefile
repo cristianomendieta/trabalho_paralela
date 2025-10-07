@@ -1,4 +1,3 @@
-# Makefile para o projeto CUDA Reduce Max
 # CI1009 - Programação Paralela com GPUs
 # UFPR - 2025
 
@@ -11,17 +10,14 @@ SOURCE = cudaReduceMax.cu
 SOURCE_COPY = copyKernel.cu
 SOURCE_SIMPLE = cudaReduceMax_simple.cu
 
-# Detectar hostname
 HOSTNAME := $(shell hostname)
 
-# Configuração de compilação baseada na máquina
 ifeq ($(HOSTNAME),orval)
     # GTX 750 Ti (sm_50) na Orval com gcc-12
     NVCC_FLAGS = -arch sm_50 --allow-unsupported-compiler -ccbin /usr/bin/gcc-12
     NVCC_FULL = $(NVCC_FLAGS) -lstdc++
     NVCC_SIMPLE = $(NVCC_FLAGS)
 else
-    # Máquina genérica
     NVCC_FLAGS = -O3
     NVCC_FULL = $(NVCC_FLAGS) -lstdc++
     NVCC_SIMPLE = $(NVCC_FLAGS)
@@ -30,15 +26,9 @@ endif
 # Compilador CUDA
 NVCC = nvcc
 
-# Regra padrão - tenta versão completa, depois simplificada
 all: check-nvcc
-	@echo "=== Compilando CUDA Reduce Max ==="
-	@echo "Hostname: $(HOSTNAME)"
-	@echo ""
-	@echo "🔄 Tentando compilar versão completa (com Thrust)..."
 	@if $(NVCC) $(NVCC_FULL) $(SOURCE) -o $(TARGET) 2>/dev/null; then \
 		echo "✅ Versão completa compilada com sucesso!"; \
-		echo "   - Inclui comparação com Thrust"; \
 	else \
 		echo "⚠️  Versão completa falhou (problemas de linkagem com Thrust)"; \
 		echo "🔄 Tentando versão simplificada..."; \
@@ -129,21 +119,6 @@ test-all: both
 	@echo ""
 	@echo "✅ Todos os testes concluídos! Resultados salvos em resultados/"
 
-# Teste rápido para debug
-debug: $(TARGET)
-	@echo "🐛 Teste rápido de debug (1000 elementos, 5 repetições)"
-	./$(TARGET) 1000
-
-# Processar resultados e gerar gráficos
-results: test-all
-	@echo "=== Processando Resultados ==="
-	python3 scripts/processar_resultados_completo.py
-	python3 scripts/gerar_grafico_enunciado.py
-	python3 scripts/gerar_planilha_ods.py
-	@echo "✅ Resultados processados! Verifique:"
-	@echo "   - resultados/resultados_completos.csv"
-	@echo "   - resultados/plots/*.png"
-	@echo "   - resultados/resultados_experimentos.ods"
 
 # Mostrar ajuda
 help:
@@ -156,7 +131,6 @@ help:
 	@echo "  make both         - Compila cudaReduceMax e copyKernel"
 	@echo "  make test         - Executa testes do cudaReduceMax"
 	@echo "  make test-copy    - Executa testes do copyKernel"
-	@echo "  make test-all     - Executa TODOS os testes e salva em resultados/"
 	@echo "  make results      - Executa testes + processa resultados + gera gráficos"
 	@echo "  make debug        - Teste rápido de debug"
 	@echo "  make clean        - Remove arquivos compilados"
