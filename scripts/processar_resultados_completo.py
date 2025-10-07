@@ -6,6 +6,7 @@ Extrai dados de thrust dos arquivos .txt e gera relatório completo
 import re
 import csv
 from pathlib import Path
+from collections import defaultdict
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')  # Backend sem display
@@ -53,13 +54,35 @@ def extrair_metricas(filepath):
         if match_throughput:
             metricas['thrust_gflops'] = float(match_throughput.group(1))
     
+    # Extrair métricas do copyKernel
+    match = re.search(r'copyKernel deltaT.*?each op takes (\d+) ns', content, re.DOTALL)
+    if match:
+        metricas['copy_tempo_ns'] = int(match.group(1))
+        match_throughput = re.search(r'Throughput:\s+([\d.]+)\s+GFLOPS', content)
+        if match_throughput:
+            metricas['copy_gflops'] = float(match_throughput.group(1))
+    
     # Extrair validação
-    metricas['validacao'] = 'OK' if 'Test PASSED' in content else 'FAIL'
+    metricas['validacao'] = 'OK' if ('Test PASSED' in content or 'CORRETO' in content) else 'FAIL'
     
     return metricas
 
 # Processar todos os arquivos
 dados = []
+
+# 1M copyKernel
+if (RESULTS / 'dados_1M_copy.txt').exists():
+    print("Processando dados_1M_copy.txt...")
+    m = extrair_metricas(RESULTS / 'dados_1M_copy.txt')
+    if 'copy_tempo_ns' in m:
+        dados.append({
+            'Teste': '1M',
+            'Kernel': 'copyKernel',
+            'Elementos': m['elementos'],
+            'Tempo_Medio_ns': m['copy_tempo_ns'],
+            'Vazao_GFLOPS': m['copy_gflops'],
+            'Validacao': m['validacao']
+        })
 
 # 1M Many-threads
 print("Processando dados_1M_many.txt...")
@@ -118,6 +141,20 @@ if 'thrust_tempo_ns' in m:
         'Validacao': m['validacao']
     })
 
+# 16M copyKernel
+if (RESULTS / 'dados_16M_copy.txt').exists():
+    print("Processando dados_16M_copy.txt...")
+    m = extrair_metricas(RESULTS / 'dados_16M_copy.txt')
+    if 'copy_tempo_ns' in m:
+        dados.append({
+            'Teste': '16M',
+            'Kernel': 'copyKernel',
+            'Elementos': m['elementos'],
+            'Tempo_Medio_ns': m['copy_tempo_ns'],
+            'Vazao_GFLOPS': m['copy_gflops'],
+            'Validacao': m['validacao']
+        })
+
 # 16M Persistente
 print("Processando dados_16M_persist.txt...")
 m = extrair_metricas(RESULTS / 'dados_16M_persist.txt')
@@ -132,7 +169,6 @@ if 'kernel2_tempo_ns' in m:
     })
 
 # Calcular acelerações em relação ao Thrust
-from collections import defaultdict
 thrust_por_teste = {}
 for d in dados:
     if d['Kernel'] == 'Thrust':
@@ -177,10 +213,10 @@ for d in dados:
 # Gráfico 1: Vazão vs Tamanho
 fig, ax1 = plt.subplots(figsize=(10, 6))
 
-cores = {'Many-threads': '#1f77b4', 'Persistente': '#ff7f0e', 'Thrust': '#2ca02c'}
-marcadores = {'Many-threads': 'o', 'Persistente': 's', 'Thrust': '^'}
+cores = {'copyKernel': '#9467bd', 'Many-threads': '#1f77b4', 'Persistente': '#ff7f0e', 'Thrust': '#2ca02c'}
+marcadores = {'copyKernel': 'd', 'Many-threads': 'o', 'Persistente': 's', 'Thrust': '^'}
 
-for kernel in ['Many-threads', 'Persistente', 'Thrust']:
+for kernel in ['copyKernel', 'Many-threads', 'Persistente', 'Thrust']:
     if kernel in kernels_data:
         data = kernels_data[kernel]
         ax1.plot(data['x'], data['vazao'], 
@@ -237,7 +273,7 @@ plt.close()
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 
 # Subplot 1: Vazão
-for kernel in ['Many-threads', 'Persistente', 'Thrust']:
+for kernel in ['copyKernel', 'Many-threads', 'Persistente', 'Thrust']:
     if kernel in kernels_data:
         data = kernels_data[kernel]
         ax1.plot(data['x'], data['vazao'], 

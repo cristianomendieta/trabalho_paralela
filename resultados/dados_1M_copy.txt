@@ -1,0 +1,20 @@
+=== copyKernel - Medição de Largura de Banda ===
+Elementos: 1000000
+Repetições: 30
+
+GPU: NVIDIA GeForce GTX 750 Ti
+
+Configuração: 977 blocos × 1024 threads
+
+=== RESULTADOS ===
+Validação: CORRETO
+
+copyKernel deltaT(ns): 3475701 ns for 30 ops
+        ==> each op takes 115856 ns
+
+=== DESEMPENHO ===
+Largura de Banda: 69.05 GB/s
+Throughput: 8.63 GFLOPS
+Eficiência: 79.9% da largura de banda teórica (86.4 GB/s)
+
+Done
